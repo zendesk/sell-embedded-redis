@@ -1,0 +1,48 @@
+apply plugin: 'basdle'
+
+buildscript {
+    repositories {
+        mavenLocal()
+        maven {
+            url baseMavenRepoAllUrl
+            credentials {
+                username baseMavenRepoAllUser
+                password baseMavenRepoAllPassword
+            }
+        }
+        jcenter()
+    }
+
+    dependencies {
+        classpath "com.getbase.basdle:basdle:$basdleVersion"
+    }
+}
+
+version = '0.5'
+group = 'redis.embedded'
+
+versions.with {
+    guava = '18.0'
+    slf4j = '1.7.7'
+    commonslogging = '1.1.1'
+    jedis = '2.6.0'
+    mockito = '1.8.5'
+    commonsio = '2.4'
+    junit = '4.11'
+    springredis = '1.4.1.RELEASE'
+}
+
+dependencies {
+    compile (
+        "com.google.guava:guava:$versions.guava",
+        "org.slf4j:slf4j-api:$versions.slf4j",
+        "commons-io:commons-io:$versions.commonsio",
+    )
+    testCompile (
+        "commons-logging:commons-logging:$versions.commonslogging",
+        "redis.clients:jedis:$versions.jedis",
+        "org.mockito:mockito-all:$versions.mockito",
+        "junit:junit:$versions.junit",
+        "org.springframework.data:spring-data-redis:$versions.springredis",
+    )
+}
