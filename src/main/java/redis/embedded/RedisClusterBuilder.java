@@ -1,5 +1,9 @@
 package redis.embedded;
 
+import redis.embedded.ports.EphemeralPortProvider;
+import redis.embedded.ports.PredefinedPortProvider;
+import redis.embedded.ports.SequencePortProvider;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,11 +34,29 @@ public class RedisClusterBuilder {
 
     public RedisClusterBuilder sentinelPorts(Collection<Integer> ports) {
         this.sentinelPortProvider = new PredefinedPortProvider(ports);
+        this.sentinelCount = ports.size();
         return this;
     }
 
     public RedisClusterBuilder serverPorts(Collection<Integer> ports) {
         this.replicationGroupPortProvider = new PredefinedPortProvider(ports);
+        return this;
+    }
+
+    public RedisClusterBuilder ephemeralSentinels() {
+        this.sentinelPortProvider = new EphemeralPortProvider();
+        return this;
+    }
+
+    public RedisClusterBuilder ephemeralServers() {
+        this.replicationGroupPortProvider = new EphemeralPortProvider();
+        return this;
+    }
+
+
+    public RedisClusterBuilder ephemeral() {
+        ephemeralSentinels();
+        ephemeralServers();
         return this;
     }
 

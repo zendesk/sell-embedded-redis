@@ -46,21 +46,24 @@ A simple redis integration test with Redis cluster setup similar to that from pr
 ```java
 public class SomeIntegrationTestThatRequiresRedis {
   private RedisCluster cluster;
-  
+  private Set<String> jedisSentinelHosts;
+
   @Before
   public void setup() throws Exception {
     //creates a cluster with 3 sentinels, quorum size of 2 and 3 replication groups, each with one master and one slave
-    cluster = RedisCluster.builder().sentinelCount(3).quorumSize(2)
+    cluster = RedisCluster.builder().ephemeral().sentinelCount(3).quorumSize(2)
                     .replicationGroup("master1", 1)
                     .replicationGroup("master2", 1)
                     .replicationGroup("master3", 1)
                     .build();
     cluster.start();
+    jedisSentinelHosts = JedisUtil.sentinelHosts(cluster);
   }
   
   @Test
   public void test() throws Exception {
     // testing code that requires redis running
+    JedisSentinelPool pool = new JedisSentinelPool("master1", jedisSentinelHosts);
   }
   
   @After
@@ -70,6 +73,32 @@ public class SomeIntegrationTestThatRequiresRedis {
 }
 ```
 
+The above example starts Redis cluster on ephemeral ports, which you can later get with ```cluster.ports()```,
+which will return a list of all ports of the cluster. You can also get ports of sentinels with ```cluster.sentinelPorts()```
+or servers with ```cluster.serverPorts()```. ```JedisUtil``` class contains utility methods for use with Jedis client.
+
+You can also start Redis cluster on predefined ports and even mix both approaches:
+```java
+public class SomeIntegrationTestThatRequiresRedis {
+  private RedisCluster cluster;
+
+  @Before
+  public void setup() throws Exception {
+    final List<Integer> sentinels = Arrays.asList(26739, 26912);
+    final List<Integer> group1 = Arrays.asList(6667, 6668);
+    final List<Integer> group2 = Arrays.asList(6387, 6379);
+    //creates a cluster with 3 sentinels, quorum size of 2 and 3 replication groups, each with one master and one slave
+    cluster = RedisCluster.builder().sentinelPorts(sentinels).quorumSize(2)
+                    .serverPorts(group1).replicationGroup("master1", 1)
+                    .serverPorts(group2).replicationGroup("master2", 1)
+                    .ephemeralServers().replicationGroup("master3", 1)
+                    .build();
+    cluster.start();
+  }
+//(...)
+```
+The above will create and start a cluster with sentinels on ports ```26739, 26912``, first replication group on ```6667, 6668```,
+second replication group on ```6387, 6379``` and third replication group on ephemeral ports.
 
 Redis version
 ==============
